@@ -1,3 +1,2 @@
 streamlit
 st_pages
-annotated_text
