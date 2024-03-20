@@ -9,6 +9,7 @@ show_pages(
         Page("pages/4_test.py","test","💯")
     ]
 )
+st.image('CEIC img.png')
 st.title("Feed Report Checking:book:")
 
 option1 = st.selectbox("Select a Source Name", ("IMF", "OECD", "JODI", "Statcounter", "FE", "ILO","sadsad"))
