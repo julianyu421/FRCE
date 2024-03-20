@@ -1,5 +1,4 @@
 import streamlit as st
-from annotated_text import annotated_text
 
 st.title('History:date:')
 
