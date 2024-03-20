@@ -1,26 +1,9 @@
 import streamlit as st
-from annotated_text import annotated_text
+
 
 st.write("testing")
 
 
-annotated_text(
-    "This ",
-    ("is", "Verb", "#8ef"),
-    " some ",
-    ("annotated", "Adj", "#faa"),
-    ("text", "Noun", "#afa"),
-    " for those of ",
-    ("you", "Pronoun", "#fea"),
-    " who ",
-    ("like", "Verb", "#8ef"),
-    " this sort of ",
-    ("thing", "Noun", "#afa"),
-    ". "
-    "And here's a ",
-    ("word", "", "#728"),
-    " with a fancy background but no label.",
-)
 
 
 ##st.set_page_config(page_title="set page config example",page_icon="🏠")
