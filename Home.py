@@ -33,7 +33,7 @@ st.write("You selected:", option1, option2)
 
 st.write("Upload Supporting Files (*.zip)")
 uploadzip = st.file_uploader("Upload Zip File", type=["zip"])
-if(uploadzip is not None):
+if(uploadzip is None):
       st.write("Error")
 
 
