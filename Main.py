@@ -112,9 +112,266 @@ def home_page():
 
 
     st.write("Upload Supporting Files (*.zip)")
-    uploadzip = st.file_uploader("Upload Zip File", type=["zip"])
-    if(uploadzip is None):
-        st.write("Error")
+    uploaded_file = st.file_uploader("Upload a Process Report zip file", type="zip")
+    uploaded_file2 = st.file_uploader("Upload a Source File Monitor zip file", type="zip")
+    # Initialize the session state variable if not already done
+    if "show_macro_cap_flag" not in st.session_state:
+        st.session_state.show_macro_cap_flag = False
+    
+    if "show_series_status" not in st.session_state:
+        st.session_state.show_series_status = False
+    
+    if "show_new_series" not in st.session_state:
+        st.session_state.show_new_series = False
+    
+    if "show_unit_edge" not in st.session_state:
+        st.session_state.show_unit_edge = False
+    
+    if "show_series_name" not in st.session_state:
+        st.session_state.show_series_name = False
+    
+    if "show_multiplier" not in st.session_state:
+        st.session_state.show_multiplier = False
+    
+    if "show_series_remark" not in st.session_state:
+        st.session_state.show_series_remark = False
+    
+    if "show_source_new" not in st.session_state:
+        st.session_state.show_source_new = False
+    
+    if "show_source_delete" not in st.session_state:
+        st.session_state.show_source_delete = False
+    
+    if "show_timepoint_summary_byseries" not in st.session_state:
+        st.session_state.show_timepoint_summary_byseries = False
+    
+    if "show_timepoint_deleted" not in st.session_state:
+        st.session_state.show_timepoint_deleted = False
+    
+    if "show_abnormal_timepoints" not in st.session_state:
+        st.session_state.show_abnormal_timepoints = False    
+    
+    
+    if uploaded_file is not None:
+        # Read the uploaded zip file
+        with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
+            # Get a list of all archived file names from the zip
+            file_list = zip_ref.namelist()
+            
+            # Display the list of files in the zip
+            st.write("Files in the zip:")
+            for file_name in file_list:
+                st.write(file_name)
+    
+            ### Timepoints report
+    
+            timepoints_file = None
+            for file_name in file_list:
+                if "Timepoints" in file_name:
+                    timepoints_file = file_name
+                    break
+    
+            if timepoints_file:
+                        with zip_ref.open(timepoints_file) as file:
+                            # Use pandas to read the sheet of the Excel file
+                            df_timepoint_summary_byseries = pd.read_excel(file, sheet_name=1)
+                            df_timepoint_deleted = pd.read_excel(file, sheet_name=2)
+                            df_abnormal_timepoints = pd.read_excel(file, sheet_name=3)
+    
+                            timepoint_summary_byseries_count = df_timepoint_summary_byseries.shape[0]
+                            timepoint_summary_byseries_sum = df_timepoint_summary_byseries.iloc[:, 5].sum()
+                            timepoint_deleted_count = df_timepoint_deleted.shape[0]
+                            abnormal_timepoints_count = df_abnormal_timepoints.shape[0]
+            else:
+                st.write("No file found with name containing 'Timepoints_Report'.")
+    
+            ##EDGE Source Tree Report
+            edge_source_tree_file = None
+            for file_name in file_list:
+                if "EDGESourceTree" in file_name:
+                    edge_source_tree_file = file_name
+                    break
+            ###EDGE Source Tree
+            if edge_source_tree_file:
+                        # Read the EDGESourceNew_Report Excel file
+                        with zip_ref.open(edge_source_tree_file) as file:
+                            # Use pandas to read the sheet of the Excel file
+                            df_source_new = pd.read_excel(file, sheet_name=0)
+                            df_source_delete = pd.read_excel(file, sheet_name=1)
+    
+                            source_new_row_count = df_source_new.shape[0]
+                            source_delete_row_count = df_source_delete.shape[0]
+            else:
+                st.write("No file found with name containing 'EDGESourceTree_Report'.")
+    
+            # Find the file name containing "NewSeries_Report"
+            new_series_file = None
+            for file_name in file_list:
+                if "NewSeries_Report" in file_name:
+                    new_series_file = file_name
+                    break
+            
+            if new_series_file:
+                # Read the NewSeries_Report Excel file
+                with zip_ref.open(new_series_file) as file:
+                    df_new_series = pd.read_excel(file)
+                    df_new_series['Series_Id'] = df_new_series['Series_Id'].astype(str) 
+                    # Count the number of rows in the Excel file
+                    new_series_row_count = df_new_series.shape[0]
+                    
+    
+            else:
+                st.write("No file found with name containing 'NewSeries_Report'.")
+            
+            # Find the file name containing "SeriesChange_Report"
+            series_change_file = None
+            for file_name in file_list:
+                if "SeriesChange_Report" in file_name:
+                    series_change_file = file_name
+                    break
+            
+            if series_change_file:
+                # Read the SeriesChange_Report Excel file
+                with zip_ref.open(series_change_file) as file:
+                    # Use pandas to read the sheet of the Excel file
+                    df_macro_cap_flag = pd.read_excel(file, sheet_name=0)
+                    df_series_status = pd.read_excel(file, sheet_name=1)
+                    df_series_status['Series_Id'] = df_series_status['Series_Id'].astype(str)
+                    df_unit_edge = pd.read_excel(file, sheet_name=2)
+                    df_series_name = pd.read_excel(file, sheet_name=3)
+                    df_series_name['Series_Id'] = df_series_name['Series_Id'].astype(str) 
+                    df_multiplier = pd.read_excel(file, sheet_name=4)
+                    df_series_remark = pd.read_excel(file, sheet_name=5)
+    
+                    # Count the number of rows in the sheet of the Excel file
+                    macro_cap_flag_row_count = df_macro_cap_flag.shape[0]
+                    series_status_row_count = df_series_status.shape[0]
+                    unit_edge_row_count = df_unit_edge.shape[0]
+                    series_name_row_count = df_series_name.shape[0]
+                    multiplier_row_count = df_multiplier.shape[0]
+                    series_remark_row_count = df_series_remark.shape[0]
+    
+    
+    
+            else:
+                st.write("No file found with name containing 'SeriesChange_Report'.")
+            
+    
+    
+        data = {
+            "Checking": ["Timepoint Summary by Series", "Timepoint Deleted", "Abnormal Timepoints", "Macro Cap Flag", "Series Status", "Unit EDGE CDM", "Series Name", "Multiplier", "Series Remark", "New Series", "Source New", "Source Delete"],
+            "DPA Process Report": [timepoint_summary_byseries_sum,timepoint_deleted_count,abnormal_timepoints_count,macro_cap_flag_row_count,series_status_row_count,unit_edge_row_count,series_name_row_count,multiplier_row_count,series_remark_row_count,new_series_row_count, source_new_row_count,source_delete_row_count],
+            "CDMNext Layout": ["NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA"],
+            "Status": ["NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA"]
+        }
+    
+        df = pd.DataFrame(data)
+        # Display the DataFrame
+        st.write("Process Report Checking Table")
+        st.dataframe(df)  # or use st.table(df) for a static table
+    ######################################################  
+        st.write(f"Series Detail - Timepoint Summary by Series from {timepoints_file}:")
+        if st.button("Timepoint Summary by Series"):
+            st.session_state.show_timepoint_summary_byseries = not st.session_state.show_timepoint_summary_byseries
+     
+        if st.session_state.show_timepoint_summary_byseries:
+            st.dataframe(df_timepoint_summary_byseries)
+    
+        st.write(f"Series Detail - Timepoint Deleted from {timepoints_file}:")
+        if st.button("Timepoint Deleted by Series"):
+            st.session_state.show_timepoint_deleted = not st.session_state.show_timepoint_deleted
+     
+        if st.session_state.show_timepoint_deleted:
+            st.dataframe(df_timepoint_deleted)
+    
+        st.write(f"Series Detail - Abnormal Timepoints from {timepoints_file}:")
+        if st.button("Abnormal Timepoints by Series"):
+            st.session_state.show_abnormal_timepoints = not st.session_state.show_abnormal_timepoints
+     
+        if st.session_state.show_abnormal_timepoints:
+            st.dataframe(df_abnormal_timepoints)        
+    
+    
+    
+    
+        # Display the dataframe (optional)
+        st.write(f"Series Detail - Macro Cap Flag from {series_change_file}:")
+        # Button to toggle the visibility of the DataFrame
+        if st.button("Macro Cap Flag"):
+            st.session_state.show_macro_cap_flag = not st.session_state.show_macro_cap_flag
+    
+        # Conditionally display the DataFrame based on the button's state
+        if st.session_state.show_macro_cap_flag:
+            st.dataframe(df_macro_cap_flag)
+        ###### Unit
+    
+        st.write(f"Series Detail - Series Status from {series_change_file}:")
+        # Button to toggle the visibility of the DataFrame
+        if st.button("Series Status"):
+            st.session_state.show_series_status = not st.session_state.show_series_status
+    
+        # Conditionally display the DataFrame based on the button's state
+        if st.session_state.show_series_status:
+            st.dataframe(df_series_status)
+    
+        st.write(f"Series Detail - Unit EDGE from {series_change_file}:")
+        # Button to toggle the visibility of the DataFrame
+        if st.button("Unit EDGE"):
+            st.session_state.show_unit_edge = not st.session_state.show_unit_edge
+     
+        if st.session_state.show_unit_edge:
+            st.dataframe(df_unit_edge)
+    
+        st.write(f"Series Detail - Series Name from {series_change_file}:")
+        # Button to toggle the visibility of the DataFrame
+        if st.button("Series Name"):
+            st.session_state.show_series_name = not st.session_state.show_series_name
+     
+        if st.session_state.show_series_name:
+            st.dataframe(df_series_name)
+    
+        st.write(f"Series Detail - Multiplier from {series_change_file}:")
+        # Button to toggle the visibility of the DataFrame
+        if st.button("Multiplier"):
+            st.session_state.show_multiplier = not st.session_state.show_multiplier
+     
+        if st.session_state.show_multiplier:
+            st.dataframe(df_multiplier)
+    
+        st.write(f"Series Detail - Series Remark from {series_change_file}:")
+        # Button to toggle the visibility of the DataFrame
+        if st.button("Series Remark"):
+            st.session_state.show_series_remark = not st.session_state.show_series_remark
+     
+        if st.session_state.show_series_remark:
+            st.dataframe(df_series_remark)
+        
+    ########## new series
+    
+        # Display the dataframe (optional)
+        st.write(f"Series Detail - New Series from {new_series_file}:")
+        if st.button("New Series"):
+            st.session_state.show_new_series = not st.session_state.show_new_series
+    
+        # Conditionally display the DataFrame based on the button's state
+        if st.session_state.show_new_series:
+            st.dataframe(df_new_series)
+    
+    ####### EDGE SourceTree Report
+        st.write(f"Series Detail - Source New from {edge_source_tree_file}:")
+        if st.button("Source New"):
+            st.session_state.show_source_new = not st.session_state.show_source_new
+     
+        if st.session_state.show_source_new:
+            st.dataframe(df_source_new)
+    
+    
+        st.write(f"Series Detail - Source Delete from {edge_source_tree_file}:")
+        if st.button("Source Delete"):
+            st.session_state.show_source_delete = not st.session_state.show_source_delete
+     
+        if st.session_state.show_source_delete:
+            st.dataframe(df_source_delete)
 
 
     st.write("Feed Report Checking - Checking Result")
