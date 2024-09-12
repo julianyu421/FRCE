@@ -3,6 +3,7 @@ import pyrebase
 import zipfile
 import pandas as pd
 
+
 # Firebase configuration
 firebaseConfig = {
   'apiKey': "AIzaSyArRVNiOa-ZT1n87BFDqUf-OUKoTlzXgk0",
@@ -115,7 +116,7 @@ def home_page():
 
     st.write("Upload Supporting Files (*.zip)")
     uploaded_file = st.file_uploader("Upload a Process Report zip file", type="zip")
-    uploaded_file2 = st.file_uploader("Upload a Source File Monitor zip file", type="zip")
+    uploaded_file2 = st.file_uploader("Upload a Layout Report zip file", type="zip")
     # Initialize the session state variable if not already done
     if "show_macro_cap_flag" not in st.session_state:
         st.session_state.show_macro_cap_flag = False
@@ -153,7 +154,12 @@ def home_page():
     if "show_abnormal_timepoints" not in st.session_state:
         st.session_state.show_abnormal_timepoints = False    
     
-    
+    if "show_layoutseries_new" not in st.session_state:
+        st.session_state.show_layoutseries_new = False  
+
+    if "show_layoutseries_changed" not in st.session_state:
+        st.session_state.show_layoutseries_changed = False              
+
     if uploaded_file is not None:
         # Read the uploaded zip file
         with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
@@ -177,6 +183,7 @@ def home_page():
                         with zip_ref.open(timepoints_file) as file:
                             # Use pandas to read the sheet of the Excel file
                             df_timepoint_summary_byseries = pd.read_excel(file, sheet_name=1)
+                            df_timepoint_summary_byseries['Series_id'] = df_timepoint_summary_byseries['Series_id'].astype(str)
                             df_timepoint_deleted = pd.read_excel(file, sheet_name=2)
                             df_abnormal_timepoints = pd.read_excel(file, sheet_name=3)
     
@@ -184,6 +191,7 @@ def home_page():
                             timepoint_summary_byseries_sum = df_timepoint_summary_byseries.iloc[:, 5].sum()
                             timepoint_deleted_count = df_timepoint_deleted.shape[0]
                             abnormal_timepoints_count = df_abnormal_timepoints.shape[0]
+            
             else:
                 st.write("No file found with name containing 'Timepoints_Report'.")
     
@@ -258,13 +266,45 @@ def home_page():
             else:
                 st.write("No file found with name containing 'SeriesChange_Report'.")
             
+    if uploaded_file2 is not None:
+        # Read the uploaded zip file
+        with zipfile.ZipFile(uploaded_file2, 'r') as zip_ref2:
+            # Get a list of all archived file names from the zip
+            file_list2 = zip_ref2.namelist()
+            
+            # Display the list of files in the zip
+            st.write("Files in the zip:")
+            for file_name2 in file_list2:
+                st.write(file_name2)
+
+            #### Layout Report
+
+            layouts_file = None
+            for file_name2 in file_list2:
+                if "Layout" in file_name2:
+                    layouts_file = file_name2
+                    break
+
+            if layouts_file:
+                    with zip_ref2.open(layouts_file) as file:
+                        # Use pandas to read the sheet of the Excel file
+                        df_layoutseries_new = pd.read_excel(file, sheet_name=0)
+                        df_layoutseries_new['Series_Id'] = df_layoutseries_new['Series_Id'].astype(str)
+                        df_layoutseries_changed = pd.read_excel(file, sheet_name=1)
+                        df_layoutseries_changed['Series_Id'] = df_layoutseries_changed['Series_Id'].astype(str)
     
+                        # Count the number of rows in the sheet of the Excel file
+                        layoutseries_new_count = df_layoutseries_new.shape[0]
+                        layoutseries_changed_count = df_layoutseries_changed.shape[0]
+            
+            else:
+                st.write("No file found with name containing 'Timepoints_Report'.")
     
         data = {
-            "Checking": ["Timepoint Summary by Series", "Timepoint Deleted", "Abnormal Timepoints", "Macro Cap Flag", "Series Status", "Unit EDGE CDM", "Series Name", "Multiplier", "Series Remark", "New Series", "Source New", "Source Delete"],
-            "DPA Process Report": [timepoint_summary_byseries_sum,timepoint_deleted_count,abnormal_timepoints_count,macro_cap_flag_row_count,series_status_row_count,unit_edge_row_count,series_name_row_count,multiplier_row_count,series_remark_row_count,new_series_row_count, source_new_row_count,source_delete_row_count],
-            "CDMNext Layout": ["NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA"],
-            "Status": ["NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA"]
+            "Checking": ["Timepoint Summary by Series", "Timepoint Deleted", "Abnormal Timepoints", "Macro Cap Flag", "Series Status", "Unit EDGE CDM", "Series Name", "Multiplier", "Series Remark", "New Series", "Source New", "Source Delete","LayoutSeries_New","LayoutSeries_Changed"],
+            "DPA Process Report": [timepoint_summary_byseries_sum,timepoint_deleted_count,abnormal_timepoints_count,macro_cap_flag_row_count,series_status_row_count,unit_edge_row_count,series_name_row_count,multiplier_row_count,series_remark_row_count,new_series_row_count, source_new_row_count,source_delete_row_count,layoutseries_new_count,layoutseries_changed_count],
+            "CDMNext Layout": ["NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA"],
+            "Status": ["NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA"]
         }
     
         df = pd.DataFrame(data)
@@ -292,7 +332,6 @@ def home_page():
      
         if st.session_state.show_abnormal_timepoints:
             st.dataframe(df_abnormal_timepoints)        
-    
     
     
     
@@ -375,10 +414,26 @@ def home_page():
         if st.session_state.show_source_delete:
             st.dataframe(df_source_delete)
 
+    ######## Layout Report
+        st.write(f"Series Detail - Source New from {layouts_file}:")
+        if st.button("New Layout Series"):
+            st.session_state.show_layoutseries_new = not st.session_state.show_layoutseries_new
+     
+        if st.session_state.show_layoutseries_new:
+            st.dataframe(df_layoutseries_new)
+    
+    
+        st.write(f"Series Detail - Series Status Changed from {layouts_file}:")
+        if st.button("Layout Series Change"):
+            st.session_state.show_layoutseries_changed = not st.session_state.show_layoutseries_changed
+     
+        if st.session_state.show_layoutseries_changed:
+            st.dataframe(df_layoutseries_changed)
 
-    st.write("Feed Report Checking - Checking Result")
-    st.write("Feed Name: ", option1 +'-'+ option2)
-    st.write("Layout Report VS CDMNext Layout")
+
+#    st.write("Feed Report Checking - Checking Result")
+#    st.write("Feed Name: ", option1 +'-'+ option2)
+#    st.write("Layout Report VS CDMNext Layout")
 
 def page1():
     st.title('History:date:')
