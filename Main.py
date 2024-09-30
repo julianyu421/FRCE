@@ -117,6 +117,20 @@ def home_page():
     st.write("Upload Supporting Files (*.zip)")
     uploaded_file = st.file_uploader("Upload a Process Report zip file", type="zip")
     uploaded_file2 = st.file_uploader("Upload a Layout Report zip file", type="zip")
+    timepoint_summary_byseries_sum = 'NA'
+    timepoint_deleted_count = 'NA'
+    abnormal_timepoints_count = 'NA'
+    macro_cap_flag_row_count = 'NA'
+    series_status_row_count = 'NA'
+    unit_edge_row_count = 'NA'
+    series_name_row_count = 'NA'
+    multiplier_row_count = 'NA'
+    series_remark_row_count = 'NA'
+    new_series_row_count = 'NA'
+    source_new_row_count = 'NA'
+    source_delete_row_count = 'NA'
+    layoutseries_new_count = 'NA'
+    layoutseries_changed_count = 'NA'
     # Initialize the session state variable if not already done
     if "show_macro_cap_flag" not in st.session_state:
         st.session_state.show_macro_cap_flag = False
@@ -265,6 +279,7 @@ def home_page():
     
             else:
                 st.write("No file found with name containing 'SeriesChange_Report'.")
+
             
     if uploaded_file2 is not None:
         # Read the uploaded zip file
@@ -278,7 +293,6 @@ def home_page():
                 st.write(file_name2)
 
             #### Layout Report
-
             layouts_file = None
             for file_name2 in file_list2:
                 if "Layout" in file_name2:
@@ -298,138 +312,139 @@ def home_page():
                         layoutseries_changed_count = df_layoutseries_changed.shape[0]
             
             else:
-                st.write("No file found with name containing 'Timepoints_Report'.")
-    
+                st.markdown("<span style='color:red; font-size:30px;'>No file found with name containing 'Layout'.</span>", unsafe_allow_html=True)
+    if uploaded_file or uploaded_file2 is not None:
         data = {
             "Checking": ["Timepoint Summary by Series", "Timepoint Deleted", "Abnormal Timepoints", "Macro Cap Flag", "Series Status", "Unit EDGE CDM", "Series Name", "Multiplier", "Series Remark", "New Series", "Source New", "Source Delete","LayoutSeries_New","LayoutSeries_Changed"],
             "DPA Process Report": [timepoint_summary_byseries_sum,timepoint_deleted_count,abnormal_timepoints_count,macro_cap_flag_row_count,series_status_row_count,unit_edge_row_count,series_name_row_count,multiplier_row_count,series_remark_row_count,new_series_row_count, source_new_row_count,source_delete_row_count,layoutseries_new_count,layoutseries_changed_count],
             "CDMNext Layout": ["NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA"],
             "Status": ["NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA","NA"]
         }
-    
+        
         df = pd.DataFrame(data)
         # Display the DataFrame
         st.write("Process Report Checking Table")
         st.dataframe(df)  # or use st.table(df) for a static table
-    ######################################################  
+######################################################  
+    if uploaded_file is not None:
         st.write(f"Series Detail - Timepoint Summary by Series from {timepoints_file}:")
         if st.button("Timepoint Summary by Series"):
             st.session_state.show_timepoint_summary_byseries = not st.session_state.show_timepoint_summary_byseries
-     
+        
         if st.session_state.show_timepoint_summary_byseries:
             st.dataframe(df_timepoint_summary_byseries)
-    
+
         st.write(f"Series Detail - Timepoint Deleted from {timepoints_file}:")
         if st.button("Timepoint Deleted by Series"):
             st.session_state.show_timepoint_deleted = not st.session_state.show_timepoint_deleted
-     
+        
         if st.session_state.show_timepoint_deleted:
             st.dataframe(df_timepoint_deleted)
-    
+
         st.write(f"Series Detail - Abnormal Timepoints from {timepoints_file}:")
         if st.button("Abnormal Timepoints by Series"):
             st.session_state.show_abnormal_timepoints = not st.session_state.show_abnormal_timepoints
-     
+        
         if st.session_state.show_abnormal_timepoints:
             st.dataframe(df_abnormal_timepoints)        
-    
-    
-    
+
+
+
         # Display the dataframe (optional)
         st.write(f"Series Detail - Macro Cap Flag from {series_change_file}:")
         # Button to toggle the visibility of the DataFrame
         if st.button("Macro Cap Flag"):
             st.session_state.show_macro_cap_flag = not st.session_state.show_macro_cap_flag
-    
+
         # Conditionally display the DataFrame based on the button's state
         if st.session_state.show_macro_cap_flag:
             st.dataframe(df_macro_cap_flag)
         ###### Unit
-    
+
         st.write(f"Series Detail - Series Status from {series_change_file}:")
         # Button to toggle the visibility of the DataFrame
         if st.button("Series Status"):
             st.session_state.show_series_status = not st.session_state.show_series_status
-    
+
         # Conditionally display the DataFrame based on the button's state
         if st.session_state.show_series_status:
             st.dataframe(df_series_status)
-    
+
         st.write(f"Series Detail - Unit EDGE from {series_change_file}:")
         # Button to toggle the visibility of the DataFrame
         if st.button("Unit EDGE"):
             st.session_state.show_unit_edge = not st.session_state.show_unit_edge
-     
+        
         if st.session_state.show_unit_edge:
             st.dataframe(df_unit_edge)
-    
+
         st.write(f"Series Detail - Series Name from {series_change_file}:")
         # Button to toggle the visibility of the DataFrame
         if st.button("Series Name"):
             st.session_state.show_series_name = not st.session_state.show_series_name
-     
+        
         if st.session_state.show_series_name:
             st.dataframe(df_series_name)
-    
+
         st.write(f"Series Detail - Multiplier from {series_change_file}:")
         # Button to toggle the visibility of the DataFrame
         if st.button("Multiplier"):
             st.session_state.show_multiplier = not st.session_state.show_multiplier
-     
+        
         if st.session_state.show_multiplier:
             st.dataframe(df_multiplier)
-    
+
         st.write(f"Series Detail - Series Remark from {series_change_file}:")
         # Button to toggle the visibility of the DataFrame
         if st.button("Series Remark"):
             st.session_state.show_series_remark = not st.session_state.show_series_remark
-     
+        
         if st.session_state.show_series_remark:
             st.dataframe(df_series_remark)
         
     ########## new series
-    
+
         # Display the dataframe (optional)
         st.write(f"Series Detail - New Series from {new_series_file}:")
         if st.button("New Series"):
             st.session_state.show_new_series = not st.session_state.show_new_series
-    
+
         # Conditionally display the DataFrame based on the button's state
         if st.session_state.show_new_series:
             st.dataframe(df_new_series)
-    
+
     ####### EDGE SourceTree Report
         st.write(f"Series Detail - Source New from {edge_source_tree_file}:")
         if st.button("Source New"):
             st.session_state.show_source_new = not st.session_state.show_source_new
-     
+        
         if st.session_state.show_source_new:
             st.dataframe(df_source_new)
-    
-    
+
+
         st.write(f"Series Detail - Source Delete from {edge_source_tree_file}:")
         if st.button("Source Delete"):
             st.session_state.show_source_delete = not st.session_state.show_source_delete
-     
+        
         if st.session_state.show_source_delete:
             st.dataframe(df_source_delete)
 
-    ######## Layout Report
+    if uploaded_file2 is not None:
+######## Layout Report
         st.write(f"Series Detail - Source New from {layouts_file}:")
         if st.button("New Layout Series"):
             st.session_state.show_layoutseries_new = not st.session_state.show_layoutseries_new
-     
+        
         if st.session_state.show_layoutseries_new:
             st.dataframe(df_layoutseries_new)
-    
-    
+
+
         st.write(f"Series Detail - Series Status Changed from {layouts_file}:")
         if st.button("Layout Series Change"):
             st.session_state.show_layoutseries_changed = not st.session_state.show_layoutseries_changed
-     
+        
         if st.session_state.show_layoutseries_changed:
             st.dataframe(df_layoutseries_changed)
-
 
 #    st.write("Feed Report Checking - Checking Result")
 #    st.write("Feed Name: ", option1 +'-'+ option2)
